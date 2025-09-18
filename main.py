@@ -46,7 +46,7 @@ if form["generate"]:
 
     # GIFを表示
     if os.path.exists("assets/chottomatte.gif"):
-        placeholder.image("assets/chottomatte.gif", caption="おはなしを作っているよ...", use_column_width=True)
+        placeholder.image("assets/chottomatte.gif", caption="おはなしを作っているよ...", use_container_width=True)
 
     # GPTで台本生成
     with st.spinner("台本を作成中…"):
