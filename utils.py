@@ -12,6 +12,17 @@ import os
 import json
 from dotenv import load_dotenv
 import streamlit as st
+from pydub import AudioSegment
+import imageio_ffmpeg as ffmpeg
+
+# ffmpeg の実行ファイルパスを取得
+ffmpeg_path = ffmpeg.get_ffmpeg_exe()
+
+# pydub に ffmpeg の場所を教える
+AudioSegment.converter = ffmpeg_path
+AudioSegment.ffmpeg = ffmpeg_path
+AudioSegment.ffprobe = ffmpeg_path
+
 
 
 
@@ -144,10 +155,10 @@ def synthesize_tts_google(ssml: str, out_path: str, tts_gender: str = "女のひ
     - tts_gender: "女性" or "男性"
     """
 
-    # ✅ Streamlit Cloud の secrets から認証情報を読み込む
+    # Streamlit Cloud の secrets から認証情報を読み込む
     credentials_info = st.secrets["gcp_service_account"]
 
-    # ✅ サービスアカウント情報でクライアント作成
+    # サービスアカウント情報でクライアント作成
     client = texttospeech.TextToSpeechClient.from_service_account_info(dict(credentials_info))
 
     if tts_gender == "女のひと":
@@ -401,4 +412,7 @@ def add_bgm_to_video(video_path, bgm_path, out_path="outputs/storybook_final.mp4
     )
 
     return out_path
+
+
+
 
