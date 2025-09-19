@@ -150,54 +150,54 @@ def add_breaks_for_ssml(text: str) -> str:
 
 
 def synthesize_tts_google(ssml: str, out_path: str, tts_gender: str = "女のひと") -> str:
-    """
-    Google Cloud TTS で音声合成
-    - tts_gender: "女性" or "男性"
-    """
+    try:
+        credentials_info = st.secrets["gcp_service_account"]
+        client = texttospeech.TextToSpeechClient.from_service_account_info(dict(credentials_info))
 
-    # Streamlit Cloud の secrets から認証情報を読み込む
-    credentials_info = st.secrets["gcp_service_account"]
+        if tts_gender == "女のひと":
+            voice_name = "ja-JP-Wavenet-A"
+        else:
+            voice_name = "ja-JP-Wavenet-C"
 
-    # サービスアカウント情報でクライアント作成
-    client = texttospeech.TextToSpeechClient.from_service_account_info(dict(credentials_info))
+        synthesis_input = texttospeech.SynthesisInput(ssml=ssml)
+        voice = texttospeech.VoiceSelectionParams(
+            language_code="ja-JP",
+            name=voice_name
+        )
+        audio_config = texttospeech.AudioConfig(
+            audio_encoding=texttospeech.AudioEncoding.MP3,
+            speaking_rate=0.8,
+            pitch=-3.0,
+            volume_gain_db=0.0
+        )
 
-    if tts_gender == "女のひと":
-        voice_name = "ja-JP-Wavenet-A"
-    else:
-        voice_name = "ja-JP-Wavenet-C"
+        resp = client.synthesize_speech(
+            input=synthesis_input,
+            voice=voice,
+            audio_config=audio_config
+        )
 
-    synthesis_input = texttospeech.SynthesisInput(ssml=ssml)
-    voice = texttospeech.VoiceSelectionParams(
-        language_code="ja-JP",
-        name=voice_name
-    )
-    audio_config = texttospeech.AudioConfig(
-        audio_encoding=texttospeech.AudioEncoding.MP3,
-        speaking_rate=0.8,
-        pitch=-3.0,
-        volume_gain_db=0.0
-    )
+        with open(out_path, "wb") as f:
+            f.write(resp.audio_content)
 
-    resp = client.synthesize_speech(
-        input=synthesis_input,
-        voice=voice,
-        audio_config=audio_config
-    )
-
-    with open(out_path, "wb") as f:
-        f.write(resp.audio_content)
-
-    return out_path
+        return out_path
+    except Exception as e:
+        st.error(f"TTS生成に失敗しました: {e}")
+        return None
 
 
 def synthesize_blocks(blocks, tts_gender="女のひと"):
+    ensure_outdir()
     block_audios_paths = []
     durations = []
 
     for i, block in enumerate(blocks):
         ssml = add_breaks_for_ssml(block)
         out_path = f"outputs/block_{i+1}.mp3"
-        synthesize_tts_google(ssml, out_path, tts_gender)
+        result = synthesize_tts_google(ssml, out_path, tts_gender)
+        if result is None or not os.path.exists(out_path):
+            st.error(f"音声ファイルの生成に失敗しました: {out_path}")
+            continue
 
         audio = AudioSegment.from_file(out_path)
         block_audios_paths.append(out_path)
