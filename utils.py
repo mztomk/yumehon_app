@@ -212,6 +212,19 @@ def synthesize_tts_google(ssml: str, out_path: str, tts_gender: str = "女のひ
         return None
 
 
+def get_audio_duration_without_ffprobe(file_path):
+    """FFprobeを使わずに音声の長さを取得"""
+    try:
+        # moviepyを使用（FFmpegは必要だがFFprobeは不要）
+        from moviepy.editor import AudioFileClip
+        audio_clip = AudioFileClip(file_path)
+        duration = audio_clip.duration
+        audio_clip.close()
+        return duration
+    except Exception as e:
+        st.warning(f"音声長さの取得に失敗: {e}")
+        return 3.0  # デフォルト値
+
 def synthesize_blocks(blocks, tts_gender="女のひと"):
     ensure_outdir()
     block_audios_paths = []
@@ -221,19 +234,20 @@ def synthesize_blocks(blocks, tts_gender="女のひと"):
         ssml = add_breaks_for_ssml(block)
         out_path = f"outputs/block_{i+1}.mp3"
         result = synthesize_tts_google(ssml, out_path, tts_gender)
-        # ファイルが存在し、かつサイズが0でないことを確認
+        
         if result is None or not os.path.exists(out_path) or os.path.getsize(out_path) == 0:
             st.error(f"音声ファイルの生成に失敗しました: {out_path}")
             continue
 
+        # FFprobeを使わない方法で音声長さを取得
         try:
-            audio = AudioSegment.from_file(out_path)
+            duration = get_audio_duration_without_ffprobe(out_path)
+            block_audios_paths.append(out_path)
+            durations.append(duration)
+            st.success(f"ブロック {i+1} 処理完了")
         except Exception as e:
-            st.error(f"音声ファイルの読み込みに失敗しました: {out_path}\n{e}")
+            st.error(f"音声ファイルの処理に失敗: {out_path}\n{e}")
             continue
-
-        block_audios_paths.append(out_path)
-        durations.append(len(audio) / 1000)  # 秒
 
     return block_audios_paths, durations
 
