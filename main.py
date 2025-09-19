@@ -66,7 +66,7 @@ if form["generate"]:
     with st.spinner("読み聞かせ練習中…"):
         scenes, blocks = utils.split_into_scenes(story_text, characters)   # ← characters を渡す
         block_audio_paths, durations = utils.synthesize_blocks(blocks, tts_gender=form["tts_gender"])
-    st.stop()
+
     # --- 挿絵生成テスト ---
     with st.spinner("絵本を生成中…"):
 
