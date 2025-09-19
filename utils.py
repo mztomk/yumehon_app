@@ -1,4 +1,5 @@
 # utils.py
+# utils.py の冒頭部分を以下に置き換え
 import os
 import re
 from google.cloud import texttospeech
@@ -14,15 +15,40 @@ from dotenv import load_dotenv
 import streamlit as st
 from pydub import AudioSegment
 import imageio_ffmpeg as ffmpeg
+import shutil
 
-# ffmpeg の実行ファイルパスを取得
-ffmpeg_path = ffmpeg.get_ffmpeg_exe()
-
-# pydub に ffmpeg の場所を教える
-AudioSegment.converter = ffmpeg_path
-AudioSegment.ffmpeg = ffmpeg_path
-AudioSegment.ffprobe = ffmpeg_path
-
+# FFmpeg設定の修正
+try:
+    # imageio-ffmpegからパスを取得
+    ffmpeg_path = ffmpeg.get_ffmpeg_exe()
+    
+    # FFprobeのパスも設定（ffmpegと同じディレクトリにある）
+    ffprobe_path = ffmpeg_path.replace('ffmpeg', 'ffprobe')
+    if os.name == 'nt':  # Windows
+        ffprobe_path = ffmpeg_path.replace('ffmpeg.exe', 'ffprobe.exe')
+    
+    # システムのFFmpegを探す（フォールバック）
+    if not os.path.exists(ffprobe_path):
+        system_ffprobe = shutil.which('ffprobe')
+        if system_ffprobe:
+            ffprobe_path = system_ffprobe
+        else:
+            st.warning("FFprobeが見つかりません。音声処理でエラーが発生する可能性があります。")
+    
+    # pydubにパスを設定
+    AudioSegment.converter = ffmpeg_path
+    AudioSegment.ffmpeg = ffmpeg_path
+    AudioSegment.ffprobe = ffprobe_path
+    
+    st.success(f"FFmpeg設定完了: {ffmpeg_path}")
+    st.success(f"FFprobe設定完了: {ffprobe_path}")
+    
+except Exception as e:
+    st.error(f"FFmpeg設定エラー: {e}")
+    # フォールバック：システムのFFmpegを使用
+    AudioSegment.converter = "ffmpeg"
+    AudioSegment.ffmpeg = "ffmpeg"
+    AudioSegment.ffprobe = "ffprobe"
 
 
 
