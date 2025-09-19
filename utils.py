@@ -212,10 +212,9 @@ def synthesize_tts_google(ssml: str, out_path: str, tts_gender: str = "女のひ
         return None
 
 
-def get_audio_duration_without_ffprobe(file_path):
+def get_audio_duration_without_ffprobe(file_path: str) -> float:
     """FFprobeを使わずに音声の長さを取得"""
     try:
-        # moviepyを使用（FFmpegは必要だがFFprobeは不要）
         from moviepy.editor import AudioFileClip
         audio_clip = AudioFileClip(file_path)
         duration = audio_clip.duration
@@ -244,7 +243,7 @@ def synthesize_blocks(blocks, tts_gender="女のひと"):
             duration = get_audio_duration_without_ffprobe(out_path)
             block_audios_paths.append(out_path)
             durations.append(duration)
-            st.success(f"ブロック {i+1} 処理完了")
+            #st.success(f"ブロック {i+1} 処理完了")
         except Exception as e:
             st.error(f"音声ファイルの処理に失敗: {out_path}\n{e}")
             continue
@@ -458,7 +457,4 @@ def add_bgm_to_video(video_path, bgm_path, out_path="outputs/storybook_final.mp4
     )
 
     return out_path
-
-
-
 
