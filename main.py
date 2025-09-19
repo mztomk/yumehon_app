@@ -13,9 +13,9 @@ load_dotenv()
 # OpenAI client を作成（台本生成用）
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-google_project_id = os.getenv("GOOGLE_PROJECT_ID")
-google_client_email = os.getenv("GOOGLE_CLIENT_EMAIL")
-google_private_key = os.getenv("GOOGLE_PRIVATE_KEY")
+#google_project_id = os.getenv("GOOGLE_PROJECT_ID")
+#google_client_email = os.getenv("GOOGLE_CLIENT_EMAIL")
+#google_private_key = os.getenv("GOOGLE_PRIVATE_KEY")
 
 # ▼ GCPキーの設定（Google TTS用）
 #if os.path.exists("yumehon.json"):
